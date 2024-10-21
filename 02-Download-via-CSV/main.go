@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -19,6 +21,22 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
+}
+
+func download(uri string, saveAs string, context any) {
+	res, err := http.Get(uri)
+	checkError(err)
+	defer res.Body.Close()
+
+	fmt.Println("_jhdb: res.StatusCode: ", res.StatusCode)
+	fmt.Println("_jhdb: res.Body: ", res.Body)
+
+	out, err := os.Create("out/" + saveAs +".txt")
+	checkError(err)
+  defer out.Close()
+
+	_, err = io.Copy(out, res.Body)
+	checkError(err)
 }
 
 func main() {
