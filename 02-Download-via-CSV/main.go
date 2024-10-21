@@ -10,6 +10,13 @@ import (
 	"strings"
 )
 
+const baseUri = "https://www.jaredhettinger.io/lit/txt/";
+
+/* type DownloadContext struct {
+	row int
+	rowData InRow
+} */
+
 type InRow struct {
 	workTitle string
 	authorLastName string
@@ -23,7 +30,7 @@ func logIfError(err error) {
 	}
 }
 
-func download(uri string, saveAs string, context any) {
+func download(uri string, saveAs string/*, context DownloadContext*/) {
 	res, err := http.Get(uri)
 	logIfError(err)
 	defer res.Body.Close()
@@ -52,16 +59,19 @@ func main() {
 		logIfError(err)
 		newRow := InRow{
 			workTitle: records[i][0],
-			authorFirstName: records[i][1],
-			authorLastName: records[i][2],
+			authorLastName: records[i][1],
+			authorFirstName: records[i][2],
 			publicationYear: parsedPublicationYear,
 		};
 		rows = append(rows, newRow)
 	}
 
 	for i := 0; i < len(rows); i++ {
-		fmt.Println("Row", i+1, ": ", rows[i])
+		downloadSlug := rows[i].authorLastName + " - " + rows[i].workTitle + ".txt"
+		downloadUri := baseUri + downloadSlug;
+		fmt.Println(downloadUri)
+		download(downloadUri, rows[i].authorLastName)
 	}
 
-	fmt.Print("Closing\n")
+	fmt.Print("\nClosing\n")
 }
