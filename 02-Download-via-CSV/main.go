@@ -17,7 +17,7 @@ type InRow struct {
 	publicationYear int
 }
 
-func checkError(err error) {
+func logIfError(err error) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -25,34 +25,31 @@ func checkError(err error) {
 
 func download(uri string, saveAs string, context any) {
 	res, err := http.Get(uri)
-	checkError(err)
+	logIfError(err)
 	defer res.Body.Close()
 
-	fmt.Println("_jhdb: res.StatusCode: ", res.StatusCode)
-	fmt.Println("_jhdb: res.Body: ", res.Body)
-
 	out, err := os.Create("out/" + saveAs +".txt")
-	checkError(err)
+	logIfError(err)
   defer out.Close()
 
 	_, err = io.Copy(out, res.Body)
-	checkError(err)
+	logIfError(err)
 }
 
 func main() {
 	fmt.Print("Running Download-via-CSV...\n\n")
 
 	data, err := os.ReadFile("in.csv")
-	checkError(err)
+	logIfError(err)
 
 	r := csv.NewReader(strings.NewReader(string(data)))
 	records, err := r.ReadAll();
-	checkError(err)
+	logIfError(err)
 
 	var rows = []InRow{};
 	for i := 1; i < len(records); i++ {
 		parsedPublicationYear, err := strconv.Atoi(records[i][3])
-		checkError(err)
+		logIfError(err)
 		newRow := InRow{
 			workTitle: records[i][0],
 			authorFirstName: records[i][1],
@@ -63,7 +60,7 @@ func main() {
 	}
 
 	for i := 0; i < len(rows); i++ {
-		fmt.Println("Row ", i+1, ": ", rows[i])
+		fmt.Println("Row", i+1, ": ", rows[i])
 	}
 
 	fmt.Print("Closing\n")
