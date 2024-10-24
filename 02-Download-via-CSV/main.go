@@ -76,7 +76,7 @@ func download(uri string, saveAs string, context RowData) bool {
 
 	out, err := os.Create("out/" + saveAs +".txt")
 	printIfError(err)
-  defer out.Close()
+	defer out.Close()
 
 	_, err = io.Copy(out, res.Body)
 	printIfError(err)
