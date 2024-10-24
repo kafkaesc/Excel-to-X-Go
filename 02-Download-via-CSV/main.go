@@ -14,12 +14,14 @@ import (
 const baseUri = "https://www.jaredhettinger.io/lit/txt/"
 var errors []ErrorDatum
 
+// Represents the details of a download error
 type ErrorDatum struct {
 	CaughtError any `json:"caughtError"`
 	Message string `json:"message"`
 	RowData RowData `json:"rowData"`
 }
 
+// Represents a row of data from the CSV file
 type RowData struct {
 	WorkTitle string `json:"workTitle"`
 	AuthorLastName string `json:"authorLastName"`
@@ -27,22 +29,41 @@ type RowData struct {
 	PublicationYear int `json:"publicationYear"`
 }
 
+// Represents the details of an HTTP response
 type ResponseError struct {
 	Status string `json:"status"`
 	StatusCode int `json:"statusCode"`
 	Header http.Header `json:"header"`
 }
 
+/*
+ * Adds the argument to the program's errors array
+ * @param err The incoming error details
+ */
 func addToErrors(err ErrorDatum) {
 	errors = append(errors, err)
 }
 
+/*
+ * Check for an error and log it if found
+ * @param err The possibly nil error object
+ */
 func printIfError(err error) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
 }
 
+/*
+ * Download the file according to the given parameters. If there is an error 
+ * with the HTTP request then pass that along to the HTTP error handler 
+ * function instead.
+ *
+ * @param uri The URI for the file
+ * @param saveAs The filename to save the file under
+ * @param context The details for the download from the CSV file
+ * @return true if the download is successful, false if not
+ */
 func download(uri string, saveAs string, context RowData) bool {
 	res, err := http.Get(uri)
 	httpError := handleHttpError(res, err, context)
@@ -62,6 +83,12 @@ func download(uri string, saveAs string, context RowData) bool {
 	return true
 }
 
+/*
+ * @param res The response details from an HTTP request
+ * @param err The nil/error object from the the same HTTP request
+ * @param rowData The details for the download from the CSV file
+ * @return true if the HTTP res indicates a failure or non-200 result, otherwise false
+ */
 func handleHttpError(res *http.Response, err error, rowData RowData) bool {
 	if err != nil {
 		newError := ErrorDatum{
@@ -88,6 +115,9 @@ func handleHttpError(res *http.Response, err error, rowData RowData) bool {
 	return false
 }
 
+/*
+ * Save the errors array into a file
+ */
 func saveErrors() {
 	// Create the errors.json file
 	file, err := os.Create("errors.json")
