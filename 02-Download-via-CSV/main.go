@@ -136,13 +136,14 @@ func saveErrors() {
 func main() {
 	fmt.Print("Running Download-via-CSV...\n\n")
 
+	// Open and read the CSV file
 	data, err := os.ReadFile("in.csv")
 	printIfError(err)
-
 	r := csv.NewReader(strings.NewReader(string(data)))
 	records, err := r.ReadAll();
 	printIfError(err)
 
+	// Loop through the CSV file and create an array of the row data
 	var rows = []RowData{};
 	for i := 1; i < len(records); i++ {
 		parsedPublicationYear, err := strconv.Atoi(records[i][3])
@@ -156,6 +157,7 @@ func main() {
 		rows = append(rows, newRow)
 	}
 
+	// Loop through the row data and download the files
 	for i := 0; i < len(rows); i++ {
 		downloadSlug := rows[i].AuthorLastName + " - " + rows[i].WorkTitle + ".txt"
 		downloadUri := baseUri + downloadSlug;
@@ -163,6 +165,7 @@ func main() {
 		download(downloadUri, rows[i].AuthorLastName, rows[i])
 	}
 
+	// If any errors occurred, save them
 	if len(errors) > 0 {
 		errorCount := strconv.Itoa(len(errors))
 		fmt.Println("\n" + errorCount + " error(s) found, saving to errors.json")
