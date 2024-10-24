@@ -12,11 +12,6 @@ import (
 
 const baseUri = "https://www.jaredhettinger.io/lit/txt/";
 
-/* type DownloadContext struct {
-	row int
-	rowData InRow
-} */
-
 type InRow struct {
 	workTitle string
 	authorLastName string
@@ -24,7 +19,7 @@ type InRow struct {
 	publicationYear int
 }
 
-func logIfError(err error) {
+func printIfError(err error) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -32,31 +27,31 @@ func logIfError(err error) {
 
 func download(uri string, saveAs string/*, context DownloadContext*/) {
 	res, err := http.Get(uri)
-	logIfError(err)
+	printIfError(err)
 	defer res.Body.Close()
 
 	out, err := os.Create("out/" + saveAs +".txt")
-	logIfError(err)
+	printIfError(err)
   defer out.Close()
 
 	_, err = io.Copy(out, res.Body)
-	logIfError(err)
+	printIfError(err)
 }
 
 func main() {
 	fmt.Print("Running Download-via-CSV...\n\n")
 
 	data, err := os.ReadFile("in.csv")
-	logIfError(err)
+	printIfError(err)
 
 	r := csv.NewReader(strings.NewReader(string(data)))
 	records, err := r.ReadAll();
-	logIfError(err)
+	printIfError(err)
 
 	var rows = []InRow{};
 	for i := 1; i < len(records); i++ {
 		parsedPublicationYear, err := strconv.Atoi(records[i][3])
-		logIfError(err)
+		printIfError(err)
 		newRow := InRow{
 			workTitle: records[i][0],
 			authorLastName: records[i][1],
