@@ -45,16 +45,6 @@ func addToErrors(err ErrorDatum) {
 }
 
 /*
- * Check for an error and log it if found
- * @param err The possibly nil error object
- */
-func printIfError(err error) {
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-}
-
-/*
  * Download the file according to the given parameters. If there is an error 
  * with the HTTP request then pass that along to the HTTP error handler 
  * function instead.
@@ -116,6 +106,16 @@ func handleHttpError(res *http.Response, err error, rowData RowData) bool {
 }
 
 /*
+ * Check for an error and log it if found
+ * @param err The possibly nil error object
+ */
+ func printIfError(err error) {
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+/*
  * Save the errors array into a file
  */
 func saveErrors() {
@@ -140,11 +140,11 @@ func main() {
 	data, err := os.ReadFile("in.csv")
 	printIfError(err)
 	r := csv.NewReader(strings.NewReader(string(data)))
-	records, err := r.ReadAll();
+	records, err := r.ReadAll()
 	printIfError(err)
 
 	// Loop through the CSV file and create an array of the row data
-	var rows = []RowData{};
+	var rows = []RowData{}
 	for i := 1; i < len(records); i++ {
 		parsedPublicationYear, err := strconv.Atoi(records[i][3])
 		printIfError(err)
@@ -153,14 +153,14 @@ func main() {
 			AuthorLastName: records[i][1],
 			AuthorFirstName: records[i][2],
 			PublicationYear: parsedPublicationYear,
-		};
+		}
 		rows = append(rows, newRow)
 	}
 
 	// Loop through the row data and download the files
 	for i := 0; i < len(rows); i++ {
 		downloadSlug := rows[i].AuthorLastName + " - " + rows[i].WorkTitle + ".txt"
-		downloadUri := baseUri + downloadSlug;
+		downloadUri := baseUri + downloadSlug
 		fmt.Println("Downloading file from " + downloadUri)
 		download(downloadUri, rows[i].AuthorLastName, rows[i])
 	}
