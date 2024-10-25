@@ -141,6 +141,7 @@ func main() {
 	printIfError(err)
 	defer xl.Close()
 
+	// TODO: First row needs to be skipped because it contains column header info
 	// Loop through the XLSX file and create an array of the row data
 	var rows = []RowData{}
 	for row := range xl.ReadRows(xl.Sheets[0]) {
@@ -154,8 +155,6 @@ func main() {
 		}
 		rows = append(rows, newRow)
 	}
-
-	// fmt.Println("_jhdb: rows:", rows)
 
 	// Loop through the row data and download the files
 	for i := 0; i < len(rows); i++ {
