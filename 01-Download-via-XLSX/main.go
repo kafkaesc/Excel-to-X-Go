@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
+
+	"github.com/thedatashed/xlsxreader"
 )
 
 const baseUri = "https://www.jaredhettinger.io/lit/txt/"
@@ -40,7 +40,7 @@ type ResponseError struct {
  * Adds the argument to the program's errors array
  * @param err The incoming error details
  */
-func addToErrors(err ErrorDatum) {
+ func addToErrors(err ErrorDatum) {
 	errors = append(errors, err)
 }
 
@@ -54,7 +54,7 @@ func addToErrors(err ErrorDatum) {
  * @param context The details for the download from the CSV file
  * @return true if the download is successful, false if not
  */
-func download(uri string, saveAs string, context RowData) bool {
+ func download(uri string, saveAs string, context RowData) bool {
 	res, err := http.Get(uri)
 	httpError := handleHttpError(res, err, context)
 	defer res.Body.Close()
@@ -79,7 +79,7 @@ func download(uri string, saveAs string, context RowData) bool {
  * @param rowData The details for the download from the CSV file
  * @return true if the HTTP res indicates a failure or non-200 result, otherwise false
  */
-func handleHttpError(res *http.Response, err error, rowData RowData) bool {
+ func handleHttpError(res *http.Response, err error, rowData RowData) bool {
 	if err != nil {
 		newError := ErrorDatum{
 			CaughtError: err,
@@ -118,7 +118,7 @@ func handleHttpError(res *http.Response, err error, rowData RowData) bool {
 /*
  * Save the errors array into a file
  */
-func saveErrors() {
+ func saveErrors() {
 	// Create the errors.json file
 	file, err := os.Create("errors.json")
 	printIfError(err)
@@ -136,22 +136,21 @@ func saveErrors() {
 func main() {
 	fmt.Print("Running Download-via-CSV...\n\n")
 
-	// Open and read the CSV file
-	data, err := os.ReadFile("in.csv")
+	// Open and read the XLSX file
+	xl, err := xlsxreader.OpenFile("in.xlsx")
 	printIfError(err)
-	r := csv.NewReader(strings.NewReader(string(data)))
-	records, err := r.ReadAll()
-	printIfError(err)
+	defer xl.Close()
 
-	// Loop through the CSV file and create an array of the row data
+	// TODO: First row needs to be skipped because it contains column header info
+	// Loop through the XLSX file and create an array of the row data
 	var rows = []RowData{}
-	for i := 1; i < len(records); i++ {
-		parsedPublicationYear, err := strconv.Atoi(records[i][3])
+	for row := range xl.ReadRows(xl.Sheets[0]) {
+		parsedPublicationYear, err := strconv.Atoi(row.Cells[3].Value)
 		printIfError(err)
 		newRow := RowData{
-			WorkTitle: records[i][0],
-			AuthorLastName: records[i][1],
-			AuthorFirstName: records[i][2],
+			WorkTitle: row.Cells[0].Value,
+			AuthorLastName: row.Cells[1].Value,
+			AuthorFirstName: row.Cells[2].Value,
 			PublicationYear: parsedPublicationYear,
 		}
 		rows = append(rows, newRow)
@@ -160,7 +159,7 @@ func main() {
 	// Loop through the row data and download the files
 	for i := 0; i < len(rows); i++ {
 		downloadSlug := rows[i].AuthorLastName + " - " + rows[i].WorkTitle + ".txt"
-		downloadUri := baseUri + downloadSlug
+		downloadUri := baseUri + downloadSlug;
 		fmt.Println("Downloading file from " + downloadUri)
 		download(downloadUri, rows[i].AuthorLastName, rows[i])
 	}
