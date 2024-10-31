@@ -145,6 +145,7 @@ func main() {
 	// Loop through the XLSX file and create an array of the row data
 	var rows = []RowData{}
 	for row := range xl.ReadRows(xl.Sheets[0]) {
+		// fmt.Println("debug: row:", row)
 		parsedPublicationYear, err := strconv.Atoi(row.Cells[3].Value)
 		printIfError(err)
 		newRow := RowData{
@@ -157,7 +158,7 @@ func main() {
 	}
 
 	// Loop through the row data and download the files
-	for i := 0; i < len(rows); i++ {
+	for i := 1; i < len(rows); i++ {
 		downloadSlug := rows[i].AuthorLastName + " - " + rows[i].WorkTitle + ".txt"
 		downloadUri := baseUri + downloadSlug;
 		fmt.Println("Downloading file from " + downloadUri)
